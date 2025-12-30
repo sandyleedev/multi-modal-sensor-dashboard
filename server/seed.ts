@@ -14,7 +14,7 @@ const pool = new Pool({
 
 async function runSeeder() {
     // 2. Resolve CSV file path (points to data.csv in the project root)
-    const csvFilePath = path.resolve(__dirname, '../../data.csv');
+    const csvFilePath = path.resolve(__dirname, '../data.csv');
     const rows: any[] = [];
 
     console.log('🚀 Reading CSV file...');
