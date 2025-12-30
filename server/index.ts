@@ -46,6 +46,43 @@ app.get('/api/sensors', async (req, res) => {
 })
 
 /**
+ * GET /api/sensors/explorer
+ * Fetches the data within the time range
+ * @param start - start time of the time range (ISO 8601 string, e.g., 2025-12-30T00:00:00Z)
+ * @param end - end time of the time range (ISO 8601 string)
+ * @param nodeId - the unique identifier of the sensor node
+ */
+app.get('/api/sensors/explorer', async (req, res) => {
+  const { start, end, nodeId } = req.query
+
+  if (!start || !end || !nodeId) {
+    return res.status(400).json({
+      error: 'Missing required parameters',
+      details: 'start, end, and nodeId are all required',
+    })
+  }
+
+  console.log(
+    `[${new Date().toISOString()}] GET /api/sensors/explorer - nodeId: ${nodeId}, range: ${start} - ${end}`,
+  )
+
+  try {
+    const result = await pool.query(
+      `SELECT * FROM smart_sensors
+        WHERE nodeid = $1
+          AND result_time >= $2
+          AND result_time <= $3
+        ORDER BY result_time ASC`,
+      [nodeId, start, end],
+    )
+    res.json(result.rows)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Database error' })
+  }
+})
+
+/**
  * GET /api/sensors/:nodeId
  * Fetches the 50 most recent readings for a specific sensor node
  * @param nodeId - The unique identifier of the sensor node
