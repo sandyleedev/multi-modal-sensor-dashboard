@@ -1,94 +1,72 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import {
-  CategoryScale,
-  Chart as ChartJS,
-  Filler,
-  Legend,
-  LinearScale,
-  LineElement,
-  PointElement,
-  Title,
-  Tooltip,
-} from 'chart.js'
-import { Line } from 'react-chartjs-2'
+import { useState, useEffect } from 'react'
+import ControlPanel from '@/components/ControlPanel'
+import ChartSection from '@/components/ChartSection'
+import { SensorData } from '@/types/sensor.types'
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
-)
-
-interface SensorData {
-  id: number
-  nodeid: number
-  temp: number
-  humid: number
-  voltage: number
-  result_time: string
-}
-
-export default function Home() {
+export default function ExplorerPage() {
   const [data, setData] = useState<SensorData[]>([])
+  const [selectedNode, setSelectedNode] = useState(13)
+  const [loading, setLoading] = useState(false)
+
+  const [startTime, setStartTime] = useState('')
+  const [endTime, setEndTime] = useState('')
+
+  const fetchData = async () => {
+    if (!startTime || !endTime) return
+
+    setLoading(true)
+    try {
+      const params = new URLSearchParams({
+        nodeId: selectedNode.toString(),
+        start: startTime,
+        end: endTime,
+      })
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/sensors/explorer?${params.toString()}`,
+      )
+      const result = await response.json()
+      setData(result)
+    } catch (error) {
+      console.error('Fetch error:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sensors`)
-        const result = await response.json()
-        setData(result.reverse())
-      } catch (error) {
-        console.error('Failed to fetch sensor data:', error)
-      }
-    }
     fetchData()
-  }, [])
-
-  const chartData = {
-    labels: data.map((d) => new Date(d.result_time).toLocaleTimeString()),
-    datasets: [
-      {
-        label: 'Temperature (°C)',
-        data: data.map((d) => d.temp),
-        borderColor: 'rgb(255, 99, 132)',
-        backgroundColor: 'rgba(255, 99, 132, 0.5)',
-        tension: 0.3,
-      },
-      {
-        label: 'Humidity (%)',
-        data: data.map((d) => d.humid),
-        borderColor: 'rgb(53, 162, 235)',
-        backgroundColor: 'rgba(53, 162, 235, 0.5)',
-        tension: 0.3,
-      },
-    ],
-  }
-
-  const options = {
-    responsive: true,
-    plugins: {
-      legend: { position: 'top' as const },
-      title: { display: true, text: 'Real-time Sensor Data' },
-    },
-    scales: {
-      y: { beginAtZero: false },
-    },
-  }
+  }, [selectedNode]) // Fetch data on node change
 
   return (
-    <main className="min-h-screen bg-gray-50 p-8">
-      <div className="mx-auto max-w-4xl rounded-xl bg-white p-6 shadow-lg">
-        <h1 className="mb-6 text-2xl font-bold">Sensor Dashboard (Chart.js)</h1>
-        <div className="h-[400px]">
-          <Line data={chartData} options={options} />
+    <div className="flex h-screen w-full overflow-hidden bg-gray-50">
+      <ControlPanel
+        selectedNode={selectedNode}
+        setSelectedNode={setSelectedNode}
+        startTime={startTime}
+        setStartTime={setStartTime}
+        endTime={endTime}
+        setEndTime={setEndTime}
+        onSearch={fetchData}
+      />
+
+      <section className="h-full flex-1 overflow-y-auto p-8">
+        <div className="mx-auto max-w-5xl">
+          <div className="mb-6 flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-gray-900">Data Explorer</h1>
+            <button
+              onClick={fetchData}
+              className="rounded-lg border bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50"
+            >
+              {loading ? 'Loading...' : 'Refresh'}
+            </button>
+          </div>
+
+          <ChartSection data={data} />
         </div>
-      </div>
-    </main>
+      </section>
+    </div>
   )
 }
