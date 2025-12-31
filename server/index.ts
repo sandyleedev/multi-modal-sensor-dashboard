@@ -83,6 +83,27 @@ app.get('/api/sensors/explorer', async (req, res) => {
 })
 
 /**
+ * GET /api/sensors/range
+ * Fetches the time range of the existing sensor data
+ */
+app.get('/api/sensors/range', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `
+      SELECT 
+        MIN(result_time) AS min_time,
+        MAX(result_time) AS max_time
+      FROM smart_sensors
+      `,
+    )
+    res.json(result.rows[0])
+  } catch (err) {
+    console.error('Error fetching data from DB', err)
+    res.status(500).json({ error: 'Database error' })
+  }
+})
+
+/**
  * GET /api/sensors/:nodeId
  * Fetches the 50 most recent readings for a specific sensor node
  * @param nodeId - The unique identifier of the sensor node
