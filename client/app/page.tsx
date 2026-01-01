@@ -12,6 +12,36 @@ export default function ExplorerPage() {
 
   const [startTime, setStartTime] = useState('')
   const [endTime, setEndTime] = useState('')
+  const [dbRange, setDbRange] = useState({ min: '', max: '' })
+
+  const fetchDbRange = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sensors/range`)
+      const data = await response.json()
+
+      // Convert DB time to 'YYYY-MM-DDTHH:mm' format for datetime-local input
+      const formatDate = (dateStr: string) => {
+        const d = new Date(dateStr)
+        // Adjust to local time if necessary, then slice
+        return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+      }
+
+      const min = formatDate(data.min_time)
+      const max = formatDate(data.max_time)
+
+      setDbRange({ min, max })
+
+      // Set initial filter values to cover the entire data range
+      setStartTime(min)
+      setEndTime(max)
+    } catch (error) {
+      console.error('Failed to fetch DB range:', error)
+    }
+  }
+
+  useEffect(() => {
+    fetchDbRange()
+  }, [])
 
   const fetchData = async () => {
     if (!startTime || !endTime) return
@@ -50,6 +80,7 @@ export default function ExplorerPage() {
         endTime={endTime}
         setEndTime={setEndTime}
         onSearch={fetchData}
+        dbRange={{ min: dbRange.min, max: dbRange.max }}
       />
 
       <section className="h-full flex-1 overflow-y-auto p-8">

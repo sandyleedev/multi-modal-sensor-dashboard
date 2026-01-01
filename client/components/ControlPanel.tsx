@@ -11,6 +11,7 @@ export default function ControlPanel({
   endTime,
   setEndTime,
   onSearch,
+  dbRange,
 }: ControlPanelTypes) {
   const setQuickRange = (minutes: number) => {
     const now = new Date()
@@ -53,6 +54,8 @@ export default function ControlPanel({
             <input
               type="datetime-local"
               value={startTime}
+              min={dbRange.min}
+              max={dbRange.max}
               onChange={(e) => setStartTime(e.target.value)}
               className="w-full rounded-md border p-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -60,6 +63,8 @@ export default function ControlPanel({
             <input
               type="datetime-local"
               value={endTime}
+              min={dbRange.min}
+              max={dbRange.max}
               onChange={(e) => setEndTime(e.target.value)}
               className="w-full rounded-md border p-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
             />

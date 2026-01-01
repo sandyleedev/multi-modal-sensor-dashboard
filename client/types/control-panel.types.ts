@@ -9,4 +9,5 @@ export interface ControlPanelTypes {
   endTime: string
   setEndTime: (val: string) => void
   onSearch: () => void
+  dbRange: { min: string; max: string }
 }
