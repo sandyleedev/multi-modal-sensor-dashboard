@@ -89,9 +89,7 @@ export default function ControlPanel({
             onChange={(e) => setSelectedNode(Number(e.target.value))}
             className="rounded-md border bg-white p-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value={1}>Node #1 (Living Room)</option>
-            <option value={2}>Node #2 (Bedroom - Mock)</option>
-            <option value={3}>Node #3 (Kitchen - Mock)</option>
+            ∏<option value={1}>Node #1</option>
           </select>
         </section>
 

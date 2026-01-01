@@ -7,7 +7,7 @@ import { SensorData } from '@/types/sensor.types'
 
 export default function ExplorerPage() {
   const [data, setData] = useState<SensorData[]>([])
-  const [selectedNode, setSelectedNode] = useState(13)
+  const [selectedNode, setSelectedNode] = useState(1)
   const [loading, setLoading] = useState(false)
 
   const [startTime, setStartTime] = useState('')
