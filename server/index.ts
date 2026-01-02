@@ -67,18 +67,57 @@ app.get('/api/sensors/explorer', async (req, res) => {
   )
 
   try {
-    const result = await pool.query(
-      `SELECT * FROM smart_sensors
-        WHERE nodeid = $1
-          AND result_time >= $2
-          AND result_time <= $3
-        ORDER BY result_time ASC`,
-      [nodeId, start, end],
-    )
-    res.json(result.rows)
+    const startTime = new Date(start as string)
+    const endTime = new Date(end as string)
+    const diffInHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60)
+
+    /**
+     * Determine the grouping interval based on the time span.
+     * This prevents the frontend from being overwhelmed by too many data points.
+     */
+    let interval = '10 seconds' // Default for very short ranges
+
+    if (diffInHours <= 1) {
+      interval = '10 seconds' // 1 hour or less: 10s intervals
+    } else if (diffInHours <= 6) {
+      interval = '1 minute' // Up to 6 hours: 1m intervals
+    } else if (diffInHours <= 24) {
+      interval = '5 minutes' // Up to 1 day: 5m intervals
+    } else if (diffInHours <= 72) {
+      interval = '15 minutes' // Up to 3 days: 15m intervals
+    } else {
+      interval = '1 hour' // More than 3 days: 1h intervals
+    }
+
+    const query = `
+      SELECT
+        date_bin($1, result_time, TIMESTAMP '2000-01-01') AS time_bucket,
+        AVG(temp) AS temp,
+        AVG(humid) AS humid,
+        AVG(bright) AS bright,
+        AVG(soundlevel) AS soundlevel,
+        MAX(pir) AS pir
+      FROM smart_sensors
+      WHERE nodeid = $2 AND result_time BETWEEN $3 AND $4
+      GROUP BY time_bucket
+      ORDER BY time_bucket ASC
+    `
+
+    const result = await pool.query(query, [interval, nodeId, start, end])
+    const formattedData = result.rows.map((row) => ({
+      ...row,
+      result_time: row.time_bucket,
+      temp: parseFloat(Number(row.temp).toFixed(1)),
+      humid: parseFloat(Number(row.humid).toFixed(1)),
+      bright: parseFloat(Number(row.bright).toFixed(2)),
+      soundlevel: parseFloat(Number(row.soundlevel).toFixed(2)),
+      pir: row.pir,
+    }))
+
+    res.json(formattedData)
   } catch (err) {
     console.error(err)
-    res.status(500).json({ error: 'Database error' })
+    res.status(500).json({ error: 'Server error' })
   }
 })
 
