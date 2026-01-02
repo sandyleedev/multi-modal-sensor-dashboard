@@ -1,7 +1,15 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { ControlPanelTypes } from '@/types/control-panel.types'
+import { formatDate } from '@/lib/date'
+
+const QUICK_RANGES = [
+  { label: '3 Hours', mins: 180 },
+  { label: '24 Hours', mins: 1440 },
+  { label: '3 Days', mins: 4320 },
+  { label: '1 Week', mins: 10080 },
+]
 
 export default function ControlPanel({
   selectedNode,
@@ -13,12 +21,18 @@ export default function ControlPanel({
   onSearch,
   dbRange,
 }: ControlPanelTypes) {
+  const [activeRange, setActiveRange] = useState<number | null>(1440)
+
   const setQuickRange = (minutes: number) => {
-    const now = new Date()
-    const ago = new Date(now.getTime() - minutes * 60 * 1000)
-    const format = (date: Date) => date.toISOString().slice(0, 16)
-    setStartTime(format(ago))
-    setEndTime(format(now))
+    if (!dbRange.max) return
+
+    setActiveRange(minutes)
+
+    const end = new Date(dbRange.max)
+    const start = new Date(end.getTime() - minutes * 60 * 1000)
+
+    setStartTime(formatDate(start))
+    setEndTime(formatDate(end))
   }
 
   return (
@@ -35,19 +49,23 @@ export default function ControlPanel({
           <h3 className="text-sm font-semibold tracking-wider text-gray-700 uppercase">
             Time Range
           </h3>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={() => setQuickRange(10)}
-              className="rounded-lg bg-gray-50 px-3 py-2 text-xs transition hover:bg-blue-50 hover:text-blue-600"
-            >
-              10 Min
-            </button>
-            <button
-              onClick={() => setQuickRange(60)}
-              className="rounded-lg bg-gray-50 px-3 py-2 text-xs transition hover:bg-blue-50 hover:text-blue-600"
-            >
-              1 Hour
-            </button>
+          <div className="flex gap-2">
+            {QUICK_RANGES.map((range) => {
+              const isActive = activeRange === range.mins
+              return (
+                <button
+                  key={range.label}
+                  onClick={() => setQuickRange(range.mins)}
+                  className={`${
+                    isActive
+                      ? 'border-blue-500 bg-blue-500 text-white' // active style
+                      : 'border-gray-400 bg-white text-gray-600 hover:border-blue-500 hover:bg-blue-50 hover:text-blue-500' // default style
+                  } cursor-pointer rounded-full border px-3 py-1 text-sm transition-colors`}
+                >
+                  {range.label}
+                </button>
+              )
+            })}
           </div>
           <div className="mt-2 flex flex-col gap-2">
             <label className="text-[10px] font-bold text-gray-400 uppercase">Start</label>

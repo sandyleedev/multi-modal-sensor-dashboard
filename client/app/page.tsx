@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import ControlPanel from '@/components/ControlPanel'
 import ChartSection from '@/components/ChartSection'
 import { SensorData } from '@/types/sensor.types'
+import { formatDate } from '@/lib/date'
 
 export default function ExplorerPage() {
   const [data, setData] = useState<SensorData[]>([])
@@ -19,18 +20,6 @@ export default function ExplorerPage() {
       // 1. Fetch the overall time boundaries (min/max) from the API
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sensors/range`)
       const data = await response.json()
-
-      /**
-       * Helper: Formats a Date object or string into 'YYYY-MM-DDTHH:mm'
-       * This format is required for 'datetime-local' input elements.
-       */
-      const formatDate = (dateInput: string | Date) => {
-        // Ensure input is converted to a Date object
-        const d = typeof dateInput === 'string' ? new Date(dateInput) : dateInput
-
-        // Adjust to local timezone offset and return formatted string (up to minutes)
-        return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
-      }
 
       // 2. Set the global database range constraints
       const min = formatDate(data.min_time)
