@@ -6,6 +6,7 @@ import { ChartOptions } from 'chart.js'
 const getBaseOptions = (onHoverHandler: any): ChartOptions<any> => ({
   responsive: true,
   maintainAspectRatio: false,
+  spanGaps: false,
   onHover: onHoverHandler,
   plugins: {
     legend: { position: 'top' as const },
@@ -15,11 +16,17 @@ const getBaseOptions = (onHoverHandler: any): ChartOptions<any> => ({
     },
   },
   scales: {
-    x: { grid: { display: false } },
+    x: {
+      type: 'time',
+      time: {
+        unit: 'hour',
+      },
+      grid: { display: true, color: 'rgba(0, 0, 0, 0.05)', drawOnChartArea: true },
+    },
   },
   elements: {
     point: {
-      radius: 0,
+      radius: 1.5,
       hoverRadius: 4,
     },
     line: {

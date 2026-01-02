@@ -12,7 +12,9 @@ import {
   Tooltip,
   Legend,
   Filler,
+  TimeScale,
 } from 'chart.js'
+import 'chartjs-adapter-date-fns'
 import { Line, Bar } from 'react-chartjs-2'
 import { getTempHumidOptions, getBrightSoundOptions, getPirOptions } from '@/lib/chartConfigs'
 import { ChartSectionTypes } from '@/types/chart-section.types'
@@ -28,12 +30,13 @@ ChartJS.register(
   Tooltip,
   Legend,
   Filler,
+  TimeScale,
 )
 
 export default function ChartSection({ data }: ChartSectionTypes) {
-  const chartRef1 = useRef<ChartJS<'line'>>(null)
-  const chartRef2 = useRef<ChartJS<'line'>>(null)
-  const chartRef3 = useRef<ChartJS<'bar'>>(null)
+  const chartRef1 = useRef<ChartJS<'line', { x: string; y: number | null }[]>>(null)
+  const chartRef2 = useRef<ChartJS<'line', { x: string; y: number | null }[]>>(null)
+  const chartRef3 = useRef<ChartJS<'bar', { x: string; y: number | null }[]>>(null)
   const chartRefs = [chartRef1, chartRef2, chartRef3]
 
   /**
@@ -93,57 +96,78 @@ export default function ChartSection({ data }: ChartSectionTypes) {
     })
   }
 
+  /**
+   * Helper: null이나 undefined인 경우 null을 반환하여 차트 선을 끊고,
+   * 값이 있는 경우에만 숫자로 변환합니다.
+   */
+  const toValue = (val: any) => (val === null || val === undefined ? null : Number(val))
+
   // Tier 1 Data: Environmental metrics (Temperature & Humidity)
   const tempHumidData = {
-    labels: data.map((d) => new Date(d.result_time).toLocaleTimeString()),
+    // labels: data.map((d) => new Date(d.result_time).toLocaleTimeString()),
     datasets: [
       {
         label: 'Temp (°C)',
-        data: data.map((d) => d.temp),
+        data: data.map((d) => ({
+          x: d.result_time,
+          y: toValue(d.temp),
+        })),
+        // data: data.map((d) => d.temp),
         borderColor: 'rgb(255, 99, 132)',
         backgroundColor: 'rgba(255, 99, 132, 0.5)',
         yAxisID: 'y',
+        spanGaps: false,
       },
       {
         label: 'Humid (%)',
-        data: data.map((d) => d.humid),
+        // data: data.map((d) => d.humid),
+        data: data.map((d) => ({
+          x: d.result_time,
+          y: toValue(d.humid),
+        })),
         borderColor: 'rgb(53, 162, 235)',
         backgroundColor: 'rgba(53, 162, 235, 0.5)',
         yAxisID: 'y1',
+        spanGaps: false,
       },
     ],
   }
 
   // Tier 2 Data: Ambient metrics (Brightness & Sound)
   const brightSoundData = {
-    labels: data.map((d) => new Date(d.result_time).toLocaleTimeString()),
+    // labels: data.map((d) => new Date(d.result_time).toLocaleTimeString()),
     datasets: [
       {
         label: 'Brightness (lux)',
-        data: data.map((d) => d.bright),
+        // data: data.map((d) => d.bright),
+        data: data.map((d) => ({ x: d.result_time, y: toValue(d.bright) })),
         borderColor: 'rgb(255,166,0)',
         backgroundColor: 'rgba(255, 166, 0, 0.5)',
         yAxisID: 'y',
-        tension: 0.3,
+        // tension: 0.3,
+        spanGaps: false,
       },
       {
         label: 'Sound (dB)',
-        data: data.map((d) => d.soundlevel),
+        // data: data.map((d) => d.soundlevel),
+        data: data.map((d) => ({ x: d.result_time, y: toValue(d.soundlevel) })),
         borderColor: 'rgb(10,175,46)',
         backgroundColor: 'rgba(10, 175, 46, 0.5)',
         yAxisID: 'y1',
-        tension: 0.3,
+        // tension: 0.3,
+        spanGaps: false,
       },
     ],
   }
 
   // Tier 3 Data: Presence detection (PIR Motion)
   const pirData = {
-    labels: data.map((d) => new Date(d.result_time).toLocaleTimeString()),
+    // labels: data.map((d) => new Date(d.result_time).toLocaleTimeString()),
     datasets: [
       {
         label: 'PIR (Motion)',
-        data: data.map((d) => d.pir),
+        // data: data.map((d) => d.pir),
+        data: data.map((d) => ({ x: d.result_time, y: toValue(d.pir) })),
         backgroundColor: 'rgba(75, 192, 192, 0.8)',
         barPercentage: 0.9,
         categoryPercentage: 0.9,
