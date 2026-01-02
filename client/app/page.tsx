@@ -96,7 +96,7 @@ export default function ExplorerPage() {
             <h1 className="text-2xl font-bold text-gray-900">Data Explorer</h1>
             <button
               onClick={fetchData}
-              className="rounded-lg border bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50"
+              className="cursor-pointer rounded-lg border bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50"
             >
               {loading ? 'Loading...' : 'Refresh'}
             </button>

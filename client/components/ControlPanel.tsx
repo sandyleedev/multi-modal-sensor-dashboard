@@ -75,7 +75,7 @@ export default function ControlPanel({
               min={dbRange.min}
               max={dbRange.max}
               onChange={(e) => setStartTime(e.target.value)}
-              className="w-full rounded-md border p-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full cursor-pointer rounded-md border p-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
             />
             <label className="text-[10px] font-bold text-gray-400 uppercase">End</label>
             <input
@@ -84,7 +84,7 @@ export default function ControlPanel({
               min={dbRange.min}
               max={dbRange.max}
               onChange={(e) => setEndTime(e.target.value)}
-              className="w-full rounded-md border p-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full cursor-pointer rounded-md border p-2 pr-4 text-sm outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </section>
@@ -92,7 +92,7 @@ export default function ControlPanel({
         {/* Search Button */}
         <button
           onClick={onSearch}
-          className="w-full rounded-xl bg-blue-600 py-3 font-bold text-white shadow-lg shadow-blue-200 transition-all hover:bg-blue-700 active:scale-[0.98]"
+          className="w-full cursor-pointer rounded-xl bg-blue-600 py-3 font-bold text-white shadow-lg shadow-blue-200 transition-all hover:bg-blue-700 active:scale-[0.98]"
         >
           Apply Filter
         </button>
@@ -105,9 +105,9 @@ export default function ControlPanel({
           <select
             value={selectedNode}
             onChange={(e) => setSelectedNode(Number(e.target.value))}
-            className="rounded-md border bg-white p-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+            className="cursor-pointer rounded-md border bg-white p-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
           >
-            ∏<option value={1}>Node #1</option>
+            <option value={1}>Node #1</option>
           </select>
         </section>
 
