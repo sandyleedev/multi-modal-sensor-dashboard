@@ -37,7 +37,7 @@ export default function ExplorerPage() {
       const max = formatDate(data.max_time)
       setDbRange({ min, max })
 
-      // 3. Initialize default filter values (Default to the most recent 24 hours)
+      // 3. Initialize default filter values (Last 24 hours of available data)
       const maxDate = new Date(data.max_time)
       const minDate = new Date(data.min_time)
 
