@@ -17,6 +17,16 @@ const getBaseOptions = (onHoverHandler: any): ChartOptions<any> => ({
   scales: {
     x: { grid: { display: false } },
   },
+  elements: {
+    point: {
+      radius: 0,
+      hoverRadius: 4,
+    },
+    line: {
+      borderWidth: 1.5,
+      tension: 0.3,
+    },
+  },
 })
 
 /**
