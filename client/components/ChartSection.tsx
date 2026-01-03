@@ -54,27 +54,34 @@ export default function ChartSection({ data }: ChartSectionTypes) {
       true,
     )
 
-    if (points.length > 0) {
-      const index = points[0].index
+    if (!points || points.length === 0) {
+      clearSync()
+      return
+    }
 
-      chartRefs.forEach((ref) => {
-        const chart = ref.current
-        if (!chart) return
+    const index = points[0].index
 
+    chartRefs.forEach((ref) => {
+      const chart = ref.current
+      if (!chart) return
+
+      try {
         const elements = chart.data.datasets.map((_, dIndex) => ({
           datasetIndex: dIndex,
           index: index,
         }))
 
-        chart.setActiveElements(elements)
-
+        if (elements !== undefined) {
+          chart.setActiveElements(elements)
+        }
         if (chart.tooltip) {
           chart.tooltip.setActiveElements(elements, { x: 0, y: 0 })
         }
-
         chart.update('none')
-      })
-    }
+      } catch (error) {
+        console.warn('Sync failed for index:', index)
+      }
+    })
   }
 
   /**

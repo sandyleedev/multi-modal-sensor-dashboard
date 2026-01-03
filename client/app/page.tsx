@@ -5,6 +5,7 @@ import ControlPanel from '@/components/ControlPanel'
 import ChartSection from '@/components/ChartSection'
 import { SensorData } from '@/types/sensor.types'
 import { formatDate } from '@/lib/date'
+import { FilterCondition } from '@/types/filter.types'
 
 export default function ExplorerPage() {
   const [data, setData] = useState<SensorData[]>([])
@@ -14,6 +15,8 @@ export default function ExplorerPage() {
   const [startTime, setStartTime] = useState('')
   const [endTime, setEndTime] = useState('')
   const [dbRange, setDbRange] = useState({ min: '', max: '' })
+
+  const [filters, setFilters] = useState<FilterCondition[]>([])
 
   const fetchDbRange = async () => {
     try {
@@ -57,6 +60,7 @@ export default function ExplorerPage() {
         nodeId: selectedNode.toString(),
         start: startTime,
         end: endTime,
+        filters: JSON.stringify(filters),
       })
 
       const response = await fetch(
@@ -75,7 +79,7 @@ export default function ExplorerPage() {
     if (startTime && endTime) {
       fetchData()
     }
-  }, [selectedNode, startTime, endTime])
+  }, [selectedNode, startTime, endTime, filters])
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-gray-50">
@@ -88,6 +92,8 @@ export default function ExplorerPage() {
         setEndTime={setEndTime}
         onSearch={fetchData}
         dbRange={{ min: dbRange.min, max: dbRange.max }}
+        filters={filters}
+        setFilters={setFilters}
       />
 
       <section className="h-full flex-1 overflow-y-auto p-8">

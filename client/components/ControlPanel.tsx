@@ -3,12 +3,29 @@
 import React, { useState } from 'react'
 import { ControlPanelTypes } from '@/types/control-panel.types'
 import { formatDate } from '@/lib/date'
+import { FilterCondition } from '@/types/filter.types'
 
 const QUICK_RANGES = [
   { label: '3 Hours', mins: 180 },
   { label: '24 Hours', mins: 1440 },
   { label: '3 Days', mins: 4320 },
   { label: '1 Week', mins: 10080 },
+]
+
+const FILTER_COLUMNS = [
+  { label: 'Temperature', value: 'temp' },
+  { label: 'Humidity', value: 'humid' },
+  { label: 'Brightness', value: 'bright' },
+  { label: 'Sound Level', value: 'soundlevel' },
+  { label: 'Motion (PIR)', value: 'pir' },
+]
+
+const FILTER_OPERATORS = [
+  { label: '>', value: '>' },
+  { label: '<', value: '<' },
+  { label: '>=', value: '>=' },
+  { label: '<=', value: '<=' },
+  { label: '=', value: '=' },
 ]
 
 export default function ControlPanel({
@@ -20,8 +37,16 @@ export default function ControlPanel({
   setEndTime,
   onSearch,
   dbRange,
+  filters,
+  setFilters,
 }: ControlPanelTypes) {
   const [activeRange, setActiveRange] = useState<number | null>(1440)
+  const [isAdding, setIsAdding] = useState(false)
+  const [newFilter, setNewFilter] = useState<FilterCondition>({
+    column: 'temp',
+    operator: '>',
+    value: 25,
+  })
 
   const setQuickRange = (minutes: number) => {
     if (!dbRange.max) return
@@ -33,6 +58,15 @@ export default function ControlPanel({
 
     setStartTime(formatDate(start))
     setEndTime(formatDate(end))
+  }
+
+  const addFilter = () => {
+    setFilters([...filters, newFilter])
+    setIsAdding(false)
+  }
+
+  const removeFilter = (index: number) => {
+    setFilters(filters.filter((_, i) => i !== index))
   }
 
   return (
@@ -89,14 +123,6 @@ export default function ControlPanel({
           </div>
         </section>
 
-        {/* Search Button */}
-        <button
-          onClick={onSearch}
-          className="w-full cursor-pointer rounded-xl bg-blue-600 py-3 font-bold text-white shadow-lg shadow-blue-200 transition-all hover:bg-blue-700 active:scale-[0.98]"
-        >
-          Apply Filter
-        </button>
-
         {/* 2. Node Selection */}
         <section className="flex flex-col gap-3">
           <h3 className="text-sm font-semibold tracking-wider text-gray-700 uppercase">
@@ -111,18 +137,103 @@ export default function ControlPanel({
           </select>
         </section>
 
-        {/* 3. Condition Filters (To be implemented) */}
+        {/* 3. Condition Filters */}
         <section className="flex flex-col gap-3">
           <h3 className="text-sm font-semibold tracking-wider text-gray-700 uppercase">
             Condition Filters
           </h3>
-          <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4 text-center text-xs text-gray-400">
-            Click [+ Add Condition] to start filtering
+
+          {/* List of Applied Filters */}
+          <div className="flex flex-col gap-2">
+            {filters.length === 0 && !isAdding && (
+              <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4 text-center text-xs text-gray-400">
+                Click [+ Add Condition] to start filtering
+              </div>
+            )}
+
+            {filters.map((f, idx) => (
+              <div
+                key={idx}
+                className="flex items-center justify-between rounded-md border border-blue-100 bg-blue-50 px-3 py-2 text-sm text-blue-700"
+              >
+                <span className="font-medium">
+                  {f.column} {f.operator} {f.value}
+                </span>
+                <button
+                  onClick={() => removeFilter(idx)}
+                  className="cursor-pointer text-blue-400 hover:text-blue-600"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
           </div>
-          <button className="text-sm font-medium text-blue-600 hover:underline">
-            + Add Condition
-          </button>
+
+          {/* Filter Entry Form (Visible only when adding) */}
+          {isAdding ? (
+            <div className="flex flex-col gap-2 rounded-lg border bg-gray-50 p-3 shadow-inner">
+              <div className="flex gap-2">
+                <select
+                  className="flex-1 rounded border bg-white p-1 text-xs"
+                  value={newFilter.column}
+                  onChange={(e) => setNewFilter({ ...newFilter, column: e.target.value as any })}
+                >
+                  {FILTER_COLUMNS.map((c) => (
+                    <option key={c.value} value={c.value}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className="w-16 rounded border bg-white p-1 text-xs"
+                  value={newFilter.operator}
+                  onChange={(e) => setNewFilter({ ...newFilter, operator: e.target.value as any })}
+                >
+                  {FILTER_OPERATORS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <input
+                type="number"
+                className="rounded border bg-white p-1 text-xs"
+                value={newFilter.value}
+                onChange={(e) => setNewFilter({ ...newFilter, value: Number(e.target.value) })}
+              />
+              <div className="mt-1 flex gap-2">
+                <button
+                  onClick={addFilter}
+                  className="flex-1 cursor-pointer rounded bg-blue-600 py-1 text-xs font-bold text-white"
+                >
+                  Add
+                </button>
+                <button
+                  onClick={() => setIsAdding(false)}
+                  className="flex-1 cursor-pointer rounded bg-gray-400 py-1 text-xs font-bold text-white"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setIsAdding(true)}
+              className="cursor-pointer text-left text-sm font-medium text-blue-600 hover:underline"
+            >
+              + Add Condition
+            </button>
+          )}
         </section>
+
+        {/* Search Button */}
+        <button
+          onClick={onSearch}
+          className="w-full cursor-pointer rounded-xl bg-blue-600 py-3 font-bold text-white shadow-lg shadow-blue-200 transition-all hover:bg-blue-700 active:scale-[0.98]"
+        >
+          Apply Filter
+        </button>
       </div>
     </aside>
   )
