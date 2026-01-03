@@ -1,9 +1,11 @@
 import { ChartOptions } from 'chart.js'
 
+const Y_AXIS_WIDTH = 45
+
 /**
  * Base configuration for all charts to ensure consistent look and feel
  */
-const getBaseOptions = (onHoverHandler: any): ChartOptions<any> => ({
+const getBaseOptions = (onHoverHandler: any, annotations: any = {}): ChartOptions<any> => ({
   responsive: true,
   maintainAspectRatio: false,
   spanGaps: false,
@@ -13,6 +15,9 @@ const getBaseOptions = (onHoverHandler: any): ChartOptions<any> => ({
     tooltip: {
       mode: 'index' as const,
       intersect: false,
+    },
+    annotation: {
+      annotations: annotations,
     },
   },
   scales: {
@@ -39,8 +44,11 @@ const getBaseOptions = (onHoverHandler: any): ChartOptions<any> => ({
 /**
  * Options for Temperature & Humidity (Dual Y-Axis)
  */
-export const getTempHumidOptions = (onHoverHandler: any): ChartOptions<'line'> => {
-  const base = getBaseOptions(onHoverHandler)
+export const getTempHumidOptions = (
+  onHoverHandler: any,
+  annotations: any,
+): ChartOptions<'line'> => {
+  const base = getBaseOptions(onHoverHandler, annotations)
   return {
     ...base,
     scales: {
@@ -52,6 +60,9 @@ export const getTempHumidOptions = (onHoverHandler: any): ChartOptions<'line'> =
         ticks: {
           color: 'rgb(255, 99, 132)',
           font: { weight: 'bold' },
+        },
+        afterFit: (axis: any) => {
+          axis.width = Y_AXIS_WIDTH
         },
         // title: { display: true, text: '°C' },
       },
@@ -66,6 +77,9 @@ export const getTempHumidOptions = (onHoverHandler: any): ChartOptions<'line'> =
         grid: {
           drawOnChartArea: false,
         },
+        afterFit: (axis: any) => {
+          axis.width = Y_AXIS_WIDTH
+        },
         // title: { display: true, text: '%' },
       },
     },
@@ -75,8 +89,11 @@ export const getTempHumidOptions = (onHoverHandler: any): ChartOptions<'line'> =
 /**
  * Options for Brightness & Sound (Dual Y-Axis with Titles)
  */
-export const getBrightSoundOptions = (onHoverHandler: any): ChartOptions<'line'> => {
-  const base = getBaseOptions(onHoverHandler)
+export const getBrightSoundOptions = (
+  onHoverHandler: any,
+  annotations: any,
+): ChartOptions<'line'> => {
+  const base = getBaseOptions(onHoverHandler, annotations)
   return {
     ...base,
     scales: {
@@ -89,6 +106,9 @@ export const getBrightSoundOptions = (onHoverHandler: any): ChartOptions<'line'>
           color: 'rgb(255,166,0)',
           font: { weight: 'bold' },
         },
+        afterFit: (axis: any) => {
+          axis.width = Y_AXIS_WIDTH
+        },
         // title: { display: true, text: 'Lux' },
       },
       y1: {
@@ -100,6 +120,9 @@ export const getBrightSoundOptions = (onHoverHandler: any): ChartOptions<'line'>
           color: 'rgb(10, 175, 46)',
           font: { weight: 'bold' },
         },
+        afterFit: (axis: any) => {
+          axis.width = Y_AXIS_WIDTH
+        },
         // title: { display: true, text: 'dB' },
       },
     },
@@ -109,8 +132,8 @@ export const getBrightSoundOptions = (onHoverHandler: any): ChartOptions<'line'>
 /**
  * Options for PIR Motion (Binary Y-Axis: ON/OFF)
  */
-export const getPirOptions = (onHoverHandler: any): ChartOptions<'bar'> => {
-  const base = getBaseOptions(onHoverHandler)
+export const getPirOptions = (onHoverHandler: any, annotations: any): ChartOptions<'bar'> => {
+  const base = getBaseOptions(onHoverHandler, annotations)
   return {
     ...base,
     scales: {
@@ -123,6 +146,21 @@ export const getPirOptions = (onHoverHandler: any): ChartOptions<'bar'> => {
           color: 'rgb(75, 192, 192)',
           font: { weight: 'bold' },
           callback: (value) => (value === 1 ? 'ON' : 'OFF'),
+        },
+        afterFit: (axis: any) => {
+          axis.width = Y_AXIS_WIDTH
+        },
+      },
+      // Add a virtual right Y-axis for layout alignment
+      y1: {
+        type: 'linear' as const,
+        display: true,
+        position: 'right' as const,
+        grid: { drawOnChartArea: false },
+        ticks: { display: false },
+        border: { display: false },
+        afterFit: (axis: any) => {
+          axis.width = Y_AXIS_WIDTH
         },
       },
     },

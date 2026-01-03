@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useRef } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -15,6 +15,7 @@ import {
   TimeScale,
 } from 'chart.js'
 import 'chartjs-adapter-date-fns'
+import annotationPlugin from 'chartjs-plugin-annotation'
 import { Line, Bar } from 'react-chartjs-2'
 import { getTempHumidOptions, getBrightSoundOptions, getPirOptions } from '@/lib/chartConfigs'
 import { ChartSectionTypes } from '@/types/chart-section.types'
@@ -31,6 +32,7 @@ ChartJS.register(
   Legend,
   Filler,
   TimeScale,
+  annotationPlugin,
 )
 
 export default function ChartSection({ data }: ChartSectionTypes) {
@@ -38,6 +40,36 @@ export default function ChartSection({ data }: ChartSectionTypes) {
   const chartRef2 = useRef<ChartJS<'line', { x: string; y: number | null }[]>>(null)
   const chartRef3 = useRef<ChartJS<'bar', { x: string; y: number | null }[]>>(null)
   const chartRefs = [chartRef1, chartRef2, chartRef3]
+
+  const [diagonalPattern, setDiagonalPattern] = useState<CanvasPattern | string | undefined>(
+    undefined,
+  )
+
+  useEffect(() => {
+    // Create a diagonal pattern canvas for masked (filtered) data regions
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    canvas.width = 10
+    canvas.height = 10
+
+    if (ctx) {
+      // 1. Fill background with very light gray
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.01)'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+      // 2. Draw a diagonal line for the pattern
+      ctx.strokeStyle = 'rgba(100, 100, 100, 0.15)'
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.moveTo(0, 10)
+      ctx.lineTo(10, 0)
+      ctx.stroke()
+
+      // 3. Create a pattern object and store it in state
+      const pattern = ctx.createPattern(canvas, 'repeat')
+      if (pattern) setDiagonalPattern(pattern)
+    }
+  }, [])
 
   /**
    * Synchronizes crosshairs and tooltips across all charts based on mouse position
@@ -182,6 +214,49 @@ export default function ChartSection({ data }: ChartSectionTypes) {
     ],
   }
 
+  const maskAnnotations = useMemo(() => {
+    const annotations: any = {}
+    let gapStart: string | null = null
+
+    data.forEach((d, i) => {
+      if (d.temp === null && gapStart === null) {
+        gapStart = d.result_time
+      } else if (d.temp !== null && gapStart !== null) {
+        annotations[`gap-${i}`] = {
+          type: 'box',
+          xMin: gapStart,
+          xMax: d.result_time,
+          backgroundColor: diagonalPattern || 'rgba(200, 200, 200, 0.1)',
+          borderWidth: 0,
+        }
+        gapStart = null
+      }
+    })
+
+    if (gapStart !== null && data.length > 0) {
+      annotations[`gap-last`] = {
+        type: 'box',
+        xMin: gapStart,
+        xMax: data[data.length - 1].result_time,
+        backgroundColor: diagonalPattern || 'rgba(200, 200, 200, 0.1)',
+        borderWidth: 0,
+      }
+    }
+    return annotations
+  }, [data, diagonalPattern])
+
+  const tempHumidOptions = useMemo(
+    () => getTempHumidOptions(syncCharts, maskAnnotations),
+    [maskAnnotations],
+  )
+
+  const brightSoundOptions = useMemo(
+    () => getBrightSoundOptions(syncCharts, maskAnnotations),
+    [maskAnnotations],
+  )
+
+  const pirOptions = useMemo(() => getPirOptions(syncCharts, maskAnnotations), [maskAnnotations])
+
   return (
     <div className="flex flex-col gap-6">
       {/* Chart 01: Temp & Humid Section */}
@@ -191,7 +266,7 @@ export default function ChartSection({ data }: ChartSectionTypes) {
           ref={chartRef1}
           data={tempHumidData}
           onMouseLeave={clearSync}
-          options={getTempHumidOptions(syncCharts)}
+          options={tempHumidOptions}
         />
       </div>
 
@@ -202,19 +277,14 @@ export default function ChartSection({ data }: ChartSectionTypes) {
           ref={chartRef2}
           data={brightSoundData}
           onMouseLeave={clearSync}
-          options={getBrightSoundOptions(syncCharts)}
+          options={brightSoundOptions}
         />
       </div>
 
       {/* Chart 03: PIR Motion Detection Section */}
       <div className="h-[180px] rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
         <h3 className="mb-2 text-xs font-bold text-gray-400 uppercase">3. PIR Motion Detection</h3>
-        <Bar
-          ref={chartRef3}
-          data={pirData}
-          onMouseLeave={clearSync}
-          options={getPirOptions(syncCharts)}
-        />
+        <Bar ref={chartRef3} data={pirData} onMouseLeave={clearSync} options={pirOptions} />
       </div>
     </div>
   )
