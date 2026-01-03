@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import { Pool } from 'pg'
 import dotenv from 'dotenv'
+import { FilterCondition } from './types/filter.types'
 
 dotenv.config()
 
@@ -53,7 +54,7 @@ app.get('/api/sensors', async (req, res) => {
  * @param nodeId - the unique identifier of the sensor node
  */
 app.get('/api/sensors/explorer', async (req, res) => {
-  const { start, end, nodeId } = req.query
+  const { start, end, nodeId, filters } = req.query
 
   if (!start || !end || !nodeId) {
     return res.status(400).json({
@@ -89,19 +90,34 @@ app.get('/api/sensors/explorer', async (req, res) => {
       interval = '1 hour' // More than 3 days: 1h intervals
     }
 
+    // dynamic filter
+    let activeFilters = []
+    try {
+      if (filters) {
+        activeFilters = JSON.parse(filters as string)
+      }
+    } catch (err) {
+      console.error('Filter parsing error: ', err)
+    }
+
+    const conditionStr =
+      activeFilters.length > 0
+        ? activeFilters
+            .map((f: FilterCondition) => {
+              const agg = f.column == 'pir' ? 'MAX' : 'AVG'
+              return `${agg}(${f.column}) ${f.operator} ${f.value}`
+            })
+            .join(' AND ')
+        : '1=1'
+
     const query = `
       SELECT
         date_bin($1, result_time, TIMESTAMP '2000-01-01') AS time_bucket,
---         CASE WHEN AVG(temp) > 26 THEN AVG(temp) ELSE NULL END AS temp,
---         CASE WHEN AVG(temp) > 26 THEN AVG(humid) ELSE NULL END AS humid,
---         CASE WHEN AVG(temp) > 26 THEN AVG(bright) ELSE NULL END AS bright,
---         CASE WHEN AVG(temp) > 26 THEN AVG(soundlevel) ELSE NULL END AS soundlevel,
---         CASE WHEN AVG(temp) > 26 THEN MAX(pir) ELSE NULL END AS pir
-        AVG(temp) AS temp,
-        AVG(humid) AS humid,
-        AVG(bright) AS bright,
-        AVG(soundlevel) AS soundlevel,
-        MAX(pir) AS pir
+        CASE WHEN ${conditionStr} THEN AVG(temp) ELSE NULL END AS temp,
+        CASE WHEN ${conditionStr} THEN AVG(humid) ELSE NULL END AS humid,
+        CASE WHEN ${conditionStr} THEN AVG(bright) ELSE NULL END AS bright,
+        CASE WHEN ${conditionStr} THEN AVG(soundlevel) ELSE NULL END AS soundlevel,
+        CASE WHEN ${conditionStr} THEN MAX(pir) ELSE NULL END AS pir
       FROM smart_sensors
       WHERE nodeid = $2 AND result_time BETWEEN $3 AND $4
       GROUP BY time_bucket
@@ -112,11 +128,6 @@ app.get('/api/sensors/explorer', async (req, res) => {
     const formattedData = result.rows.map((row) => ({
       ...row,
       result_time: row.time_bucket,
-      // temp: parseFloat(Number(row.temp).toFixed(1)),
-      // humid: parseFloat(Number(row.humid).toFixed(1)),
-      // bright: parseFloat(Number(row.bright).toFixed(2)),
-      // soundlevel: parseFloat(Number(row.soundlevel).toFixed(2)),
-      // pir: row.pir,
       temp: row.temp === null ? null : parseFloat(Number(row.temp).toFixed(1)),
       humid: row.humid === null ? null : parseFloat(Number(row.humid).toFixed(1)),
       bright: row.bright === null ? null : parseFloat(Number(row.bright).toFixed(2)),
