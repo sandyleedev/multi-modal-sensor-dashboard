@@ -64,7 +64,6 @@ export const getTempHumidOptions = (
         afterFit: (axis: any) => {
           axis.width = Y_AXIS_WIDTH
         },
-        // title: { display: true, text: '°C' },
       },
       y1: {
         type: 'linear' as const,
@@ -80,7 +79,6 @@ export const getTempHumidOptions = (
         afterFit: (axis: any) => {
           axis.width = Y_AXIS_WIDTH
         },
-        // title: { display: true, text: '%' },
       },
     },
   }
@@ -109,7 +107,6 @@ export const getBrightSoundOptions = (
         afterFit: (axis: any) => {
           axis.width = Y_AXIS_WIDTH
         },
-        // title: { display: true, text: 'Lux' },
       },
       y1: {
         type: 'linear' as const,
@@ -123,7 +120,6 @@ export const getBrightSoundOptions = (
         afterFit: (axis: any) => {
           axis.width = Y_AXIS_WIDTH
         },
-        // title: { display: true, text: 'dB' },
       },
     },
   }

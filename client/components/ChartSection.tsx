@@ -136,14 +136,13 @@ export default function ChartSection({ data }: ChartSectionTypes) {
   }
 
   /**
-   * Helper: null이나 undefined인 경우 null을 반환하여 차트 선을 끊고,
-   * 값이 있는 경우에만 숫자로 변환합니다.
+   * Helper: Returns null if the value is null or undefined to break the chart line
+   * otherwise, converts the value to a number.
    */
   const toValue = (val: any) => (val === null || val === undefined ? null : Number(val))
 
   // Tier 1 Data: Environmental metrics (Temperature & Humidity)
   const tempHumidData = {
-    // labels: data.map((d) => new Date(d.result_time).toLocaleTimeString()),
     datasets: [
       {
         label: 'Temp (°C)',
@@ -151,7 +150,6 @@ export default function ChartSection({ data }: ChartSectionTypes) {
           x: d.result_time,
           y: toValue(d.temp),
         })),
-        // data: data.map((d) => d.temp),
         borderColor: 'rgb(255, 99, 132)',
         backgroundColor: 'rgba(255, 99, 132, 0.5)',
         yAxisID: 'y',
@@ -159,7 +157,6 @@ export default function ChartSection({ data }: ChartSectionTypes) {
       },
       {
         label: 'Humid (%)',
-        // data: data.map((d) => d.humid),
         data: data.map((d) => ({
           x: d.result_time,
           y: toValue(d.humid),
@@ -174,11 +171,9 @@ export default function ChartSection({ data }: ChartSectionTypes) {
 
   // Tier 2 Data: Ambient metrics (Brightness & Sound)
   const brightSoundData = {
-    // labels: data.map((d) => new Date(d.result_time).toLocaleTimeString()),
     datasets: [
       {
         label: 'Brightness (lux)',
-        // data: data.map((d) => d.bright),
         data: data.map((d) => ({ x: d.result_time, y: toValue(d.bright) })),
         borderColor: 'rgb(255,166,0)',
         backgroundColor: 'rgba(255, 166, 0, 0.5)',
@@ -188,12 +183,10 @@ export default function ChartSection({ data }: ChartSectionTypes) {
       },
       {
         label: 'Sound (dB)',
-        // data: data.map((d) => d.soundlevel),
         data: data.map((d) => ({ x: d.result_time, y: toValue(d.soundlevel) })),
         borderColor: 'rgb(10,175,46)',
         backgroundColor: 'rgba(10, 175, 46, 0.5)',
         yAxisID: 'y1',
-        // tension: 0.3,
         spanGaps: false,
       },
     ],
@@ -201,11 +194,9 @@ export default function ChartSection({ data }: ChartSectionTypes) {
 
   // Tier 3 Data: Presence detection (PIR Motion)
   const pirData = {
-    // labels: data.map((d) => new Date(d.result_time).toLocaleTimeString()),
     datasets: [
       {
         label: 'PIR (Motion)',
-        // data: data.map((d) => d.pir),
         data: data.map((d) => ({ x: d.result_time, y: toValue(d.pir) })),
         backgroundColor: 'rgba(75, 192, 192, 0.8)',
         barPercentage: 0.9,
