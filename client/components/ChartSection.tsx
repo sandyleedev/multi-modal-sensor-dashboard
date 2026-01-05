@@ -20,6 +20,7 @@ import { Line, Bar } from 'react-chartjs-2'
 import { getTempHumidOptions, getBrightSoundOptions, getPirOptions } from '@/lib/chartConfigs'
 import { ChartSectionTypes } from '@/types/chart-section.types'
 import { useChartMasking } from '@/hooks/useChartMasking'
+import { calculateMaskAnnotations } from '@/utils/chartUtils'
 
 // Register Chart.js components required for rendering different chart types
 ChartJS.register(
@@ -178,36 +179,10 @@ export default function ChartSection({ data }: ChartSectionTypes) {
     ],
   }
 
-  const maskAnnotations = useMemo(() => {
-    const annotations: any = {}
-    let gapStart: string | null = null
-
-    data.forEach((d, i) => {
-      if (d.temp === null && gapStart === null) {
-        gapStart = d.result_time
-      } else if (d.temp !== null && gapStart !== null) {
-        annotations[`gap-${i}`] = {
-          type: 'box',
-          xMin: gapStart,
-          xMax: d.result_time,
-          backgroundColor: diagonalPattern || 'rgba(200, 200, 200, 0.1)',
-          borderWidth: 0,
-        }
-        gapStart = null
-      }
-    })
-
-    if (gapStart !== null && data.length > 0) {
-      annotations[`gap-last`] = {
-        type: 'box',
-        xMin: gapStart,
-        xMax: data[data.length - 1].result_time,
-        backgroundColor: diagonalPattern || 'rgba(200, 200, 200, 0.1)',
-        borderWidth: 0,
-      }
-    }
-    return annotations
-  }, [data, diagonalPattern])
+  const maskAnnotations = useMemo(
+    () => calculateMaskAnnotations(data, diagonalPattern),
+    [data, diagonalPattern],
+  )
 
   const tempHumidOptions = useMemo(
     () => getTempHumidOptions(syncCharts, maskAnnotations),
