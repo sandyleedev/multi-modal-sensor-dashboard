@@ -21,6 +21,7 @@ import { getTempHumidOptions, getBrightSoundOptions, getPirOptions } from '@/lib
 import { ChartSectionTypes } from '@/types/chart-section.types'
 import { useChartMasking } from '@/hooks/useChartMasking'
 import { calculateMaskAnnotations } from '@/utils/chartUtils'
+import ChartWrapper from '@/components/ChartWrapper'
 
 // Register Chart.js components required for rendering different chart types
 ChartJS.register(
@@ -199,32 +200,29 @@ export default function ChartSection({ data }: ChartSectionTypes) {
   return (
     <div className="flex flex-col gap-6">
       {/* Chart 01: Temp & Humid Section */}
-      <div className="h-[300px] rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-        <h3 className="mb-2 text-sm font-bold text-gray-500">1. Temperature & Humidity</h3>
+      <ChartWrapper title="1. Temperature & Humidity" height="300px">
         <Line
           ref={chartRef1}
           data={tempHumidData}
           onMouseLeave={clearSync}
           options={tempHumidOptions}
         />
-      </div>
+      </ChartWrapper>
 
       {/* Chart 02: Brightness & Sound Section */}
-      <div className="h-[280px] rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-        <h3 className="mb-2 text-xs font-bold text-gray-400 uppercase">2. Brightness & Sound</h3>
+      <ChartWrapper title="2. Brightness & Sound" height="280px">
         <Line
           ref={chartRef2}
           data={brightSoundData}
           onMouseLeave={clearSync}
           options={brightSoundOptions}
         />
-      </div>
+      </ChartWrapper>
 
       {/* Chart 03: PIR Motion Detection Section */}
-      <div className="h-[180px] rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-        <h3 className="mb-2 text-xs font-bold text-gray-400 uppercase">3. PIR Motion Detection</h3>
+      <ChartWrapper title="3. PIR Motion Detection" height="180px">
         <Bar ref={chartRef3} data={pirData} onMouseLeave={clearSync} options={pirOptions} />
-      </div>
+      </ChartWrapper>
     </div>
   )
 }
