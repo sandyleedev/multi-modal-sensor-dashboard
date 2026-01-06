@@ -2,14 +2,24 @@ import fs from 'fs'
 import path from 'path'
 import csv from 'csv-parser'
 import { Pool } from 'pg'
+import dotenv from 'dotenv'
+
+// Load environment variables based on the execution environment
+if (process.env.NODE_ENV !== 'production') {
+  // In development: Manually load .env from the project root
+  dotenv.config({ path: path.resolve(__dirname, '../.env') })
+} else {
+  // In production (Docker): Use environment variables injected into the system container
+  dotenv.config()
+}
 
 // 1. Database connection configuration
 const pool = new Pool({
-  user: 'user',
-  host: 'localhost', // Use 'localhost' for running the script directly on the server
-  database: 'sensor_db',
-  password: 'password',
-  port: 5432,
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  port: parseInt(process.env.DB_PORT || '5432'),
 })
 
 async function runSeeder() {

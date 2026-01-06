@@ -3,6 +3,8 @@ services:
     image: postgres:15-alpine
     container_name: sensor-db
     restart: always
+    env_file:
+      - .env
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -21,6 +23,8 @@ services:
     image: sandyleedev/sensor-api:latest
     container_name: sensor-api
     restart: always
+    env_file:
+      - .env
     environment:
       DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
       NODE_ENV: production

@@ -3,8 +3,16 @@ import cors from 'cors'
 import { Pool } from 'pg'
 import dotenv from 'dotenv'
 import { FilterCondition } from './types/filter.types'
+import path from 'path'
 
-dotenv.config()
+// Load environment variables based on the execution environment
+if (process.env.NODE_ENV !== 'production') {
+  // In development: Manually load .env from the project root
+  dotenv.config({ path: path.resolve(__dirname, '../.env') })
+} else {
+  // In production (Docker): Use environment variables injected into the system container
+  dotenv.config()
+}
 
 const app = express()
 const port = process.env.PORT || 4000
