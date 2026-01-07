@@ -48,12 +48,15 @@ export default function ChartSection({ data }: ChartSectionTypes) {
 
   /**
    * Synchronizes crosshairs and tooltips across all charts based on mouse position
-   * Triggers during the 'onHover' event of any single chart
+   * Fixed: Added defensive logic to prevent 'Cannot set properties of undefined (setting active)'
+   * which occurred during data filtering or when data lengths mismatched between charts.
    */
   const syncCharts = (event: any) => {
+    // 1. Identify the chart currently being hovered by the user.
     const activeChart = chartRefs.find((ref) => ref.current?.canvas === event.native.target)
     if (!activeChart || !activeChart.current) return
 
+    // 2. Retrieve the data point index corresponding to the mouse position.
     const points = activeChart.current.getElementsAtEventForMode(
       event.native,
       'index',
@@ -61,6 +64,7 @@ export default function ChartSection({ data }: ChartSectionTypes) {
       true,
     )
 
+    // [Defensive] If the mouse is outside the data area or no points are found, clear synchronization.
     if (!points || points.length === 0) {
       clearSync()
       return
@@ -68,23 +72,44 @@ export default function ChartSection({ data }: ChartSectionTypes) {
 
     const index = points[0].index
 
+    // 3. Iterate through all charts to apply the synchronized hover state.
     chartRefs.forEach((ref) => {
       const chart = ref.current
-      if (!chart) return
+      // [Defensive] Skip if the chart object or datasets are not yet initialized.
+      if (!chart || !chart.data || !chart.data.datasets) return
 
       try {
-        const elements = chart.data.datasets.map((_, dIndex) => ({
-          datasetIndex: dIndex,
-          index: index,
-        }))
+        /**
+         * [Core Fix]
+         * Check if the 'index' from the active chart exists in the target chart's data range.
+         * If a chart has fewer data points (e.g., due to filtering lag), accessing a non-existent
+         * index causes Chart.js to throw a TypeError when trying to set the 'active' state.
+         */
+        const elements = chart.data.datasets
+          .map((dataset, dIndex) => {
+            if (dataset.data && dataset.data.length > index) {
+              return { datasetIndex: dIndex, index: index }
+            }
+            return null
+          })
+          // Filter out null values to ensure only valid element objects are passed.
+          .filter((el): el is { datasetIndex: number; index: number } => el !== null)
 
-        if (elements !== undefined) {
+        // 4. Update the chart state only if valid data points were found.
+        if (elements.length > 0) {
+          // Activate hover effects (e.g., highlighting points).
           chart.setActiveElements(elements)
+
+          // Force-activate tooltips even if the mouse is not directly over this specific chart.
+          if (chart.tooltip) {
+            chart.tooltip.setActiveElements(elements, { x: 0, y: 0 })
+          }
+          /**
+           * [Stability] Use 'none' mode to update the chart immediately without animation.
+           * This reduces the risk of race conditions during rapid data re-rendering.
+           */
+          chart.update('none')
         }
-        if (chart.tooltip) {
-          chart.tooltip.setActiveElements(elements, { x: 0, y: 0 })
-        }
-        chart.update('none')
       } catch (error) {
         console.warn('Sync failed for index:', index)
       }
