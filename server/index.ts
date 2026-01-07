@@ -16,8 +16,14 @@ if (process.env.NODE_ENV !== 'production') {
 
 const app = express()
 const port = process.env.PORT || 4000
+const allowedOrigin = process.env.ALLOWED_ORIGIN || 'http://localhost:3000'
 
-app.use(cors())
+const corsOptions = {
+  origin: allowedOrigin,
+  optionsSuccessStatus: 200,
+}
+
+app.use(cors(corsOptions))
 app.use(express.json())
 
 // DB Connection
