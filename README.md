@@ -2,9 +2,6 @@
 
 A full-stack monitoring and analytics platform designed to efficiently query and visualize large-scale multi-modal sensor data. The system ensures high data reliability through Python-based preprocessing and features a scalable infrastructure managed as code with Terraform on GCP.
 
-## 🔗 Live Demo
-- **Dashboard**: [https://sensor.sandylee.work](https://sensor.sandylee.work)
-
 ## 🚀 Key Features
 
 ### 🔍 Advanced Data Exploration
