@@ -48,10 +48,20 @@ export default function ControlPanel({
     value: 25,
   })
 
+  // Validation check - ensure that startTime is earlier than endTime
+  const isTimeInvalid = startTime && endTime && new Date(startTime) > new Date(endTime)
+
   const handleTimeChange = (type: 'start' | 'end', value: string) => {
     setActiveRange(null)
-    if (type === 'start') setStartTime(value)
-    else setEndTime(value)
+    if (type === 'start') {
+      setStartTime(value)
+      // automatically sync end time with the new start time to maintain validity
+      if (endTime && new Date(value) > new Date(endTime)) {
+        setEndTime(value)
+      }
+    } else {
+      setEndTime(value)
+    }
   }
 
   const setQuickRange = (minutes: number) => {
@@ -125,11 +135,16 @@ export default function ControlPanel({
             <input
               type="datetime-local"
               value={endTime}
-              min={dbRange.min}
+              min={startTime}
               max={dbRange.max}
               onChange={(e) => handleTimeChange('end', e.target.value)}
               className="w-full cursor-pointer rounded-md border p-2 pr-4 text-sm outline-none focus:ring-2 focus:ring-blue-500"
             />
+            {isTimeInvalid && (
+              <p className="mt-1 text-[12px] font-bold text-red-500">
+                End time cannot be earlier than start time.
+              </p>
+            )}
           </div>
         </section>
 
