@@ -5,41 +5,84 @@ const Y_AXIS_WIDTH = 45
 /**
  * Base configuration for all charts to ensure consistent look and feel
  */
-const getBaseOptions = (onHoverHandler: any, annotations: any = {}): ChartOptions<any> => ({
-  responsive: true,
-  maintainAspectRatio: false,
-  spanGaps: false,
-  onHover: onHoverHandler,
-  plugins: {
-    legend: { position: 'top' as const },
-    tooltip: {
-      mode: 'index' as const,
-      intersect: false,
-    },
-    annotation: {
-      annotations: annotations,
-    },
-  },
-  scales: {
-    x: {
-      type: 'time',
-      time: {
-        unit: 'hour',
+const getBaseOptions = (
+  onHoverHandler: any,
+  annotations: any = {},
+  startTime?: string,
+  endTime?: string,
+): ChartOptions<any> => {
+  // Logic to calculate time duration/difference
+  const getTimeUnit = () => {
+    if (!startTime || !endTime) return 'hour'
+    const diffInDays =
+      (new Date(endTime).getTime() - new Date(startTime).getTime()) / (1000 * 60 * 60 * 24)
+    // Use 'day' unit if the range exceeds 4 days for better readability
+    if (diffInDays > 4) return 'day'
+    // Maintain 'hour' unit for shorter ranges (Format will be adjusted accordingly)
+    if (diffInDays > 1) return 'hour'
+    return 'hour'
+  }
+
+  const unit = getTimeUnit()
+
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    spanGaps: false,
+    onHover: onHoverHandler,
+    plugins: {
+      legend: { position: 'top' as const },
+      tooltip: {
+        mode: 'index' as const,
+        intersect: false,
+        callbacks: {
+          title: (context: any) => {
+            const date = new Date(context[0].parsed.x)
+            return date.toLocaleString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              hour: 'numeric',
+              minute: 'numeric',
+              hour12: true,
+            })
+          },
+        },
       },
-      grid: { display: true, color: 'rgba(0, 0, 0, 0.05)', drawOnChartArea: true },
+      annotation: {
+        annotations: annotations,
+      },
     },
-  },
-  elements: {
-    point: {
-      radius: 1.5,
-      hoverRadius: 4,
+    scales: {
+      x: {
+        type: 'time',
+        time: {
+          unit: unit as any,
+          displayFormats: {
+            hour: 'MMM d, ha', // for normal time range - with hour (ex: Nov 10, 1PM)
+            day: 'MMM d', // for longer time range - only date (ex: Nov 10)
+          },
+          tooltipFormat: 'MMM d, yyyy h:mm',
+        },
+        grid: { display: true, color: 'rgba(0, 0, 0, 0.05)', drawOnChartArea: true },
+        ticks: {
+          maxRotation: 0,
+          autoSkip: true,
+          maxTicksLimit: 10,
+        },
+      },
     },
-    line: {
-      borderWidth: 1.5,
-      tension: 0.3,
+    elements: {
+      point: {
+        radius: 1.5,
+        hoverRadius: 4,
+      },
+      line: {
+        borderWidth: 1.5,
+        tension: 0.3,
+      },
     },
-  },
-})
+  }
+}
 
 /**
  * Options for Temperature & Humidity (Dual Y-Axis)
@@ -47,8 +90,10 @@ const getBaseOptions = (onHoverHandler: any, annotations: any = {}): ChartOption
 export const getTempHumidOptions = (
   onHoverHandler: any,
   annotations: any,
+  startTime: string,
+  endTime: string,
 ): ChartOptions<'line'> => {
-  const base = getBaseOptions(onHoverHandler, annotations)
+  const base = getBaseOptions(onHoverHandler, annotations, startTime, endTime)
   return {
     ...base,
     scales: {
@@ -90,8 +135,10 @@ export const getTempHumidOptions = (
 export const getBrightSoundOptions = (
   onHoverHandler: any,
   annotations: any,
+  startTime: string,
+  endTime: string,
 ): ChartOptions<'line'> => {
-  const base = getBaseOptions(onHoverHandler, annotations)
+  const base = getBaseOptions(onHoverHandler, annotations, startTime, endTime)
   return {
     ...base,
     scales: {
@@ -128,8 +175,13 @@ export const getBrightSoundOptions = (
 /**
  * Options for PIR Motion (Binary Y-Axis: ON/OFF)
  */
-export const getPirOptions = (onHoverHandler: any, annotations: any): ChartOptions<'bar'> => {
-  const base = getBaseOptions(onHoverHandler, annotations)
+export const getPirOptions = (
+  onHoverHandler: any,
+  annotations: any,
+  startTime: string,
+  endTime: string,
+): ChartOptions<'bar'> => {
+  const base = getBaseOptions(onHoverHandler, annotations, startTime, endTime)
   return {
     ...base,
     scales: {

@@ -48,6 +48,12 @@ export default function ControlPanel({
     value: 25,
   })
 
+  const handleTimeChange = (type: 'start' | 'end', value: string) => {
+    setActiveRange(null)
+    if (type === 'start') setStartTime(value)
+    else setEndTime(value)
+  }
+
   const setQuickRange = (minutes: number) => {
     if (!dbRange.max) return
 
@@ -83,6 +89,8 @@ export default function ControlPanel({
           <h3 className="text-sm font-semibold tracking-wider text-gray-700 uppercase">
             Time Range
           </h3>
+
+          {/* quick time range */}
           <div className="flex gap-2">
             {QUICK_RANGES.map((range) => {
               const isActive = activeRange === range.mins
@@ -101,6 +109,8 @@ export default function ControlPanel({
               )
             })}
           </div>
+
+          {/* manual time range input */}
           <div className="mt-2 flex flex-col gap-2">
             <label className="text-[10px] font-bold text-gray-400 uppercase">Start</label>
             <input
@@ -108,7 +118,7 @@ export default function ControlPanel({
               value={startTime}
               min={dbRange.min}
               max={dbRange.max}
-              onChange={(e) => setStartTime(e.target.value)}
+              onChange={(e) => handleTimeChange('start', e.target.value)}
               className="w-full cursor-pointer rounded-md border p-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
             />
             <label className="text-[10px] font-bold text-gray-400 uppercase">End</label>
@@ -117,7 +127,7 @@ export default function ControlPanel({
               value={endTime}
               min={dbRange.min}
               max={dbRange.max}
-              onChange={(e) => setEndTime(e.target.value)}
+              onChange={(e) => handleTimeChange('end', e.target.value)}
               className="w-full cursor-pointer rounded-md border p-2 pr-4 text-sm outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>

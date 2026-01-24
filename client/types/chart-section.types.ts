@@ -5,4 +5,6 @@ import { SensorData } from './sensor.types'
  */
 export interface ChartSectionTypes {
   data: SensorData[]
+  startTime: string
+  endTime: string
 }

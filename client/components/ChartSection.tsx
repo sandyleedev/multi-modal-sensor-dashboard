@@ -38,7 +38,7 @@ ChartJS.register(
   annotationPlugin,
 )
 
-export default function ChartSection({ data }: ChartSectionTypes) {
+export default function ChartSection({ data, startTime, endTime }: ChartSectionTypes) {
   const chartRef1 = useRef<ChartJS<'line', { x: string; y: number | null }[]>>(null)
   const chartRef2 = useRef<ChartJS<'line', { x: string; y: number | null }[]>>(null)
   const chartRef3 = useRef<ChartJS<'bar', { x: string; y: number | null }[]>>(null)
@@ -211,16 +211,19 @@ export default function ChartSection({ data }: ChartSectionTypes) {
   )
 
   const tempHumidOptions = useMemo(
-    () => getTempHumidOptions(syncCharts, maskAnnotations),
+    () => getTempHumidOptions(syncCharts, maskAnnotations, startTime, endTime),
     [maskAnnotations],
   )
 
   const brightSoundOptions = useMemo(
-    () => getBrightSoundOptions(syncCharts, maskAnnotations),
+    () => getBrightSoundOptions(syncCharts, maskAnnotations, startTime, endTime),
     [maskAnnotations],
   )
 
-  const pirOptions = useMemo(() => getPirOptions(syncCharts, maskAnnotations), [maskAnnotations])
+  const pirOptions = useMemo(
+    () => getPirOptions(syncCharts, maskAnnotations, startTime, endTime),
+    [maskAnnotations],
+  )
 
   return (
     <div className="flex flex-col gap-6">

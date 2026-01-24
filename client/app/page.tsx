@@ -108,7 +108,7 @@ export default function ExplorerPage() {
             </button>
           </div>
 
-          <ChartSection data={data} />
+          <ChartSection data={data} startTime={startTime} endTime={endTime} />
         </div>
       </section>
     </div>
