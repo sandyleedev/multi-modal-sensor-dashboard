@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import { healthRouter } from './routes/health.routes'
 import { sensorsRouter } from './routes/sensors.routes'
+import { tbiRouter } from './routes/tbi.routes'
 
 export function createApp() {
   const app = express()
@@ -24,6 +25,7 @@ export function createApp() {
   // routes
   app.use('/api', healthRouter)
   app.use('/api/sensors', sensorsRouter)
+  app.use('/api/tbi', tbiRouter)
 
   return app
 }
