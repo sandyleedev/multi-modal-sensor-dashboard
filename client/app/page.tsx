@@ -1,7 +1,10 @@
-export default function HomePage() {
+import { Suspense } from 'react'
+import ExplorerClient from './ExplorerClient'
+
+export default function Page() {
   return (
-    <main>
-      <h1>Temperature-Based Interaction Explorer</h1>
-    </main>
+    <Suspense fallback={<div style={{ padding: 20 }}>Loading...</div>}>
+      <ExplorerClient />
+    </Suspense>
   )
 }
