@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <Suspense fallback={<div style={{ padding: 20 }}>Loading...</div>}>
+    <Suspense fallback={<div style={{ padding: 20 }}></div>}>
       <ExplorerClient />
     </Suspense>
   )

@@ -1,4 +1,5 @@
 import type { CaseItem, CasesResponse } from '@/types/tbi.types'
+import { SkeletonCard } from '@/components/tbi/SkeletonCard'
 
 type Props = {
   casesData: CasesResponse | null
@@ -59,7 +60,11 @@ export function ResultsPanel({
 
       {/* Loading */}
       {loading ? (
-        <div style={{ color: '#666', fontSize: 14 }}>Loading cases...</div>
+        <div style={{ display: 'grid', gap: 10 }}>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
       ) : (
         <>
           {/* Cards */}

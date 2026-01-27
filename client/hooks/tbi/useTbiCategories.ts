@@ -6,7 +6,7 @@ import { fetchTbiCategories } from '@/lib/tbi/api'
 
 export function useTbiCategories(apiBase: string) {
   const [categories, setCategories] = useState<CategoriesResponse>({})
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {

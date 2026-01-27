@@ -1,4 +1,5 @@
 import type { CategoriesResponse } from '@/types/tbi.types'
+import { FilterPanelSkeleton } from '@/components/tbi/FilterPanelSkeleton'
 
 type Props = {
   categories: CategoriesResponse
@@ -35,7 +36,7 @@ export function FilterPanel({
       </div>
 
       {loading ? (
-        <div style={{ color: '#666', fontSize: 14 }}>Loading categories...</div>
+        <FilterPanelSkeleton />
       ) : (
         <>
           {/* Scenario */}

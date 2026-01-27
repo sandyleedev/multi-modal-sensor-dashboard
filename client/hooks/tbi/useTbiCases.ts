@@ -13,7 +13,7 @@ export function useTbiCases(args: {
   pageSize: number
 }) {
   const [casesData, setCasesData] = useState<CasesResponse | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const scenarioKey = useMemo(() => args.scenario.join('|'), [args.scenario.join('|')])

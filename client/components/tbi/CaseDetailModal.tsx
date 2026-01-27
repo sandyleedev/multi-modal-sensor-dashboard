@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import type { CaseItem } from '@/types/tbi.types'
+import { CaseDetailSkeleton } from '@/components/tbi/CaseDetailSkeleton'
 
 type Props = {
   open: boolean
@@ -163,7 +164,7 @@ export function CaseDetailModal({ open, loading, error, caseItem, onClose }: Pro
             <div style={{ fontWeight: 800, marginBottom: 6 }}>Details</div>
 
             {loading ? (
-              <div style={{ color: '#666', fontSize: 14 }}>Loading details...</div>
+              <CaseDetailSkeleton lines={1} />
             ) : detail ? (
               <div style={{ color: '#333', fontSize: 14, lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
                 {detail}
