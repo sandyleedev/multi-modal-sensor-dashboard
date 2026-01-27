@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import type { CategoriesResponse, CasesResponse } from '@/types/tbi.types'
 import { useTbiQueryState } from '@/hooks/tbi/useTbiQueryState'
 import { DEFAULT_PAGE_SIZE as PAGE_SIZE } from '@/lib/tbi/query'
+import { getApiBase } from '@/lib/config'
 
 export default function ExplorerClient() {
   const {
@@ -31,7 +32,7 @@ export default function ExplorerClient() {
     clearAllFilters,
   } = useTbiQueryState({ pageSize: PAGE_SIZE })
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+  const API_BASE = getApiBase()
 
   /**
    * -------------------------------------------
