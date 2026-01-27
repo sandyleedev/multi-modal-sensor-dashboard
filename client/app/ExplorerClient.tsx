@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import type { CategoriesResponse, CasesResponse } from '@/types/tbi.types'
 import { useTbiQueryState } from '@/hooks/tbi/useTbiQueryState'
+import { useTbiCategories } from '@/hooks/tbi/useTbiCategories'
+import { useTbiCases } from '@/hooks/tbi/useTbiCases'
 import { DEFAULT_PAGE_SIZE as PAGE_SIZE } from '@/lib/tbi/query'
 import { getApiBase } from '@/lib/config'
 
@@ -34,88 +34,26 @@ export default function ExplorerClient() {
 
   const API_BASE = getApiBase()
 
-  /**
-   * -------------------------------------------
-   * 서버 데이터 상태
-   * -------------------------------------------
-   */
-  const [categories, setCategories] = useState<CategoriesResponse>({})
-  const [casesData, setCasesData] = useState<CasesResponse | null>(null)
+  const {
+    categories,
+    loading: loadingCategories,
+    error: categoriesError,
+  } = useTbiCategories(API_BASE)
 
-  const [loadingCategories, setLoadingCategories] = useState(false)
-  const [loadingCases, setLoadingCases] = useState(false)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const {
+    casesData,
+    loading: loadingCases,
+    error: casesError,
+  } = useTbiCases({
+    apiBase: API_BASE,
+    q: urlQ,
+    scenario: urlScenario,
+    technology: urlTechnology,
+    page: urlPage,
+    pageSize: PAGE_SIZE,
+  })
 
-  /**
-   * -------------------------------------------
-   * categories 불러오기
-   * -------------------------------------------
-   */
-  useEffect(() => {
-    let cancelled = false
-    async function fetchCategories() {
-      setLoadingCategories(true)
-      setErrorMessage(null)
-
-      try {
-        const res = await fetch(`${API_BASE}/tbi/categories`, { cache: 'no-store' })
-        if (!res.ok) throw new Error(`Failed to fetch categories (${res.status})`)
-
-        const data = (await res.json()) as CategoriesResponse
-        if (!cancelled) setCategories(data)
-      } catch (err) {
-        if (!cancelled) setErrorMessage('Failed to load categories.')
-        console.error(err)
-      } finally {
-        if (!cancelled) setLoadingCategories(false)
-      }
-    }
-
-    fetchCategories()
-    return () => {
-      cancelled = true
-    }
-  }, [API_BASE])
-
-  /**
-   * -------------------------------------------
-   * cases 불러오기 (URL 쿼리가 바뀔 때마다 자동 업데이트)
-   * -------------------------------------------
-   */
-  useEffect(() => {
-    let cancelled = false
-    async function fetchCases() {
-      setLoadingCases(true)
-      setErrorMessage(null)
-
-      try {
-        const sp = new URLSearchParams()
-
-        if (urlQ.trim().length > 0) sp.set('q', urlQ.trim())
-        for (const s of urlScenario) sp.append('scenario', s)
-        for (const t of urlTechnology) sp.append('technology', t)
-
-        sp.set('page', String(urlPage))
-        sp.set('pageSize', String(PAGE_SIZE))
-
-        const res = await fetch(`${API_BASE}/tbi/cases?${sp.toString()}`, { cache: 'no-store' })
-        if (!res.ok) throw new Error(`Failed to fetch cases (${res.status})`)
-
-        const data = (await res.json()) as CasesResponse
-        if (!cancelled) setCasesData(data)
-      } catch (err) {
-        if (!cancelled) setErrorMessage('Failed to load cases.')
-        console.error(err)
-      } finally {
-        if (!cancelled) setLoadingCases(false)
-      }
-    }
-
-    fetchCases()
-    return () => {
-      cancelled = true
-    }
-  }, [API_BASE, urlQ, urlScenario.join('|'), urlTechnology.join('|'), urlPage])
+  const errorMessage = categoriesError ?? casesError
 
   /**
    * -------------------------------------------
