@@ -1,71 +1,41 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import type { CategoriesResponse, CasesResponse } from '@/types/tbi.types'
-
-const PAGE_SIZE = 12
-
-function buildQueryString(params: {
-  q?: string
-  scenario?: string[]
-  technology?: string[]
-  page?: number
-  pageSize?: number
-}) {
-  const sp = new URLSearchParams()
-
-  if (params.q && params.q.trim().length > 0) sp.set('q', params.q.trim())
-
-  for (const s of params.scenario ?? []) sp.append('scenario', s)
-  for (const t of params.technology ?? []) sp.append('technology', t)
-
-  if (params.page && params.page > 1) sp.set('page', String(params.page))
-  if (params.pageSize && params.pageSize !== PAGE_SIZE) sp.set('pageSize', String(params.pageSize))
-
-  const qs = sp.toString()
-  return qs ? `?${qs}` : ''
-}
+import { useTbiQueryState } from '@/hooks/tbi/useTbiQueryState'
+import { DEFAULT_PAGE_SIZE as PAGE_SIZE } from '@/lib/tbi/query'
 
 export default function ExplorerClient() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
+  const {
+    urlQ,
+    urlPage,
+    urlScenario,
+    urlTechnology,
+
+    selectedScenarioArr,
+    selectedTechnologyArr,
+    selectedScenarios,
+    selectedTechnologies,
+    hasAnyFilters,
+
+    searchInput,
+    setSearchInput,
+
+    applySearch,
+    goToPage,
+    toggleScenario,
+    toggleTechnology,
+    removeScenario,
+    removeTechnology,
+    clearSearchOnly,
+    clearAllFilters,
+  } = useTbiQueryState({ pageSize: PAGE_SIZE })
 
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
 
   /**
    * -------------------------------------------
-   * 1) URL(Query String) -> 현재 상태 파싱
-   * -------------------------------------------
-   */
-  const urlQ = searchParams.get('q') ?? ''
-  const urlPage = Number(searchParams.get('page') ?? '1') || 1
-  const urlScenario = searchParams.getAll('scenario')
-  const urlTechnology = searchParams.getAll('technology')
-
-  const selectedScenarioArr = useMemo(() => urlScenario, [urlScenario])
-  const selectedTechnologyArr = useMemo(() => urlTechnology, [urlTechnology])
-
-  const hasAnyFilters =
-    (urlQ?.trim().length ?? 0) > 0 ||
-    selectedScenarioArr.length > 0 ||
-    selectedTechnologyArr.length > 0
-
-  /**
-   * -------------------------------------------
-   * 2) UI 상태 (검색 input은 즉시 URL에 반영 안 하고, Apply 버튼으로 반영)
-   * -------------------------------------------
-   */
-  const [searchInput, setSearchInput] = useState(urlQ)
-
-  // URL q가 바뀌면 input도 동기화 (뒤로가기/앞으로가기 대응)
-  useEffect(() => {
-    setSearchInput(urlQ)
-  }, [urlQ])
-
-  /**
-   * -------------------------------------------
-   * 3) 서버 데이터 상태
+   * 서버 데이터 상태
    * -------------------------------------------
    */
   const [categories, setCategories] = useState<CategoriesResponse>({})
@@ -75,12 +45,9 @@ export default function ExplorerClient() {
   const [loadingCases, setLoadingCases] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  const selectedScenarios = useMemo(() => new Set(urlScenario), [urlScenario])
-  const selectedTechnologies = useMemo(() => new Set(urlTechnology), [urlTechnology])
-
   /**
    * -------------------------------------------
-   * 4) categories 불러오기
+   * categories 불러오기
    * -------------------------------------------
    */
   useEffect(() => {
@@ -111,7 +78,7 @@ export default function ExplorerClient() {
 
   /**
    * -------------------------------------------
-   * 5) cases 불러오기 (URL 쿼리가 바뀔 때마다 자동 업데이트)
+   * cases 불러오기 (URL 쿼리가 바뀔 때마다 자동 업데이트)
    * -------------------------------------------
    */
   useEffect(() => {
@@ -151,85 +118,7 @@ export default function ExplorerClient() {
 
   /**
    * -------------------------------------------
-   * 6) URL 업데이트 유틸 (필터 / 페이지네이션 / 검색)
-   * -------------------------------------------
-   */
-  function updateUrl(next: {
-    q?: string
-    scenario?: string[]
-    technology?: string[]
-    page?: number
-  }) {
-    const qs = buildQueryString({
-      q: next.q ?? urlQ,
-      scenario: next.scenario ?? urlScenario,
-      technology: next.technology ?? urlTechnology,
-      page: next.page ?? 1, // 필터/검색 변경 시 기본은 page 1로
-      pageSize: PAGE_SIZE,
-    })
-    router.push(`/${qs}`)
-  }
-
-  function toggleScenario(name: string) {
-    const next = new Set(urlScenario)
-    if (next.has(name)) next.delete(name)
-    else next.add(name)
-
-    updateUrl({
-      scenario: Array.from(next),
-      page: 1,
-    })
-  }
-
-  function toggleTechnology(name: string) {
-    const next = new Set(urlTechnology)
-    if (next.has(name)) next.delete(name)
-    else next.add(name)
-
-    updateUrl({
-      technology: Array.from(next),
-      page: 1,
-    })
-  }
-
-  function clearAllFilters() {
-    updateUrl({
-      q: '',
-      scenario: [],
-      technology: [],
-      page: 1,
-    })
-  }
-
-  function removeScenario(name: string) {
-    const next = urlScenario.filter((s) => s !== name)
-    updateUrl({ scenario: next, page: 1 })
-  }
-
-  function removeTechnology(name: string) {
-    const next = urlTechnology.filter((t) => t !== name)
-    updateUrl({ technology: next, page: 1 })
-  }
-
-  function clearSearchOnly() {
-    setSearchInput('')
-    updateUrl({ q: '', page: 1 })
-  }
-
-  function applySearch() {
-    updateUrl({
-      q: searchInput,
-      page: 1,
-    })
-  }
-
-  function goToPage(p: number) {
-    updateUrl({ page: p })
-  }
-
-  /**
-   * -------------------------------------------
-   * 7) UI
+   * UI
    * -------------------------------------------
    */
   const scenarioList = categories['scenario'] ?? []
