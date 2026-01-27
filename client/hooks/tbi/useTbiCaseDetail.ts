@@ -6,7 +6,7 @@ import type { CaseItem } from '@/types/tbi.types'
 type Args = {
   apiBase: string
   caseId: number | null
-  initialCase?: CaseItem | null // 리스트에서 클릭하면 여기로 넣어서 즉시 표시
+  initialCase?: CaseItem | null
 }
 
 export function useTbiCaseDetail({ apiBase, caseId, initialCase }: Args) {
@@ -14,7 +14,6 @@ export function useTbiCaseDetail({ apiBase, caseId, initialCase }: Args) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // initialCase가 바뀌면 즉시 반영 (클릭 직후 모달 내용이 바로 채워짐)
   useEffect(() => {
     setData(initialCase ?? null)
   }, [initialCase])
