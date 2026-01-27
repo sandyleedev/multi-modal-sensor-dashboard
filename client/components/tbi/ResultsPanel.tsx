@@ -1,4 +1,4 @@
-import type { CasesResponse } from '@/types/tbi.types'
+import type { CaseItem, CasesResponse } from '@/types/tbi.types'
 
 type Props = {
   casesData: CasesResponse | null
@@ -6,9 +6,17 @@ type Props = {
   errorMessage: string | null
   onPrev: () => void
   onNext: () => void
+  onOpenCase: (item: CaseItem) => void
 }
 
-export function ResultsPanel({ casesData, loading, errorMessage, onPrev, onNext }: Props) {
+export function ResultsPanel({
+  casesData,
+  loading,
+  errorMessage,
+  onPrev,
+  onNext,
+  onOpenCase,
+}: Props) {
   return (
     <section
       style={{
@@ -60,11 +68,13 @@ export function ResultsPanel({ casesData, loading, errorMessage, onPrev, onNext 
               casesData.items.map((item) => (
                 <div
                   key={item.id}
+                  onClick={() => onOpenCase(item)}
                   style={{
                     border: '1px solid #eee',
                     borderRadius: 14,
                     padding: 14,
                     background: '#fff',
+                    cursor: 'pointer',
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
