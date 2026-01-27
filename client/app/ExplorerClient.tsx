@@ -74,6 +74,14 @@ export default function ExplorerClient() {
   const urlScenario = searchParams.getAll('scenario')
   const urlTechnology = searchParams.getAll('technology')
 
+  const selectedScenarioArr = useMemo(() => urlScenario, [urlScenario])
+  const selectedTechnologyArr = useMemo(() => urlTechnology, [urlTechnology])
+
+  const hasAnyFilters =
+    (urlQ?.trim().length ?? 0) > 0 ||
+    selectedScenarioArr.length > 0 ||
+    selectedTechnologyArr.length > 0
+
   /**
    * -------------------------------------------
    * 2) UI 상태 (검색 input은 즉시 URL에 반영 안 하고, Apply 버튼으로 반영)
@@ -224,6 +232,21 @@ export default function ExplorerClient() {
     })
   }
 
+  function removeScenario(name: string) {
+    const next = urlScenario.filter((s) => s !== name)
+    updateUrl({ scenario: next, page: 1 })
+  }
+
+  function removeTechnology(name: string) {
+    const next = urlTechnology.filter((t) => t !== name)
+    updateUrl({ technology: next, page: 1 })
+  }
+
+  function clearSearchOnly() {
+    setSearchInput('')
+    updateUrl({ q: '', page: 1 })
+  }
+
   function applySearch() {
     updateUrl({
       q: searchInput,
@@ -307,6 +330,142 @@ export default function ExplorerClient() {
         >
           Reset
         </button>
+      </div>
+
+      {/* Selected Filters (Chips) */}
+      <div style={{ marginBottom: 16, minHeight: 36, display: 'flex', alignItems: 'center' }}>
+        {!hasAnyFilters ? (
+          <div style={{ color: '#777', fontSize: 13 }}>No filters applied.</div>
+        ) : (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+            {/* Search chip */}
+            {urlQ.trim().length > 0 && (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  fontSize: 12,
+                  padding: '6px 10px',
+                  borderRadius: 999,
+                  border: '1px solid #e6e6e6',
+                  background: '#fafafa',
+                }}
+              >
+                <strong style={{ fontWeight: 700 }}>Search:</strong>
+                <span
+                  style={{
+                    maxWidth: 260,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {urlQ}
+                </span>
+                <button
+                  onClick={clearSearchOnly}
+                  aria-label="Remove search"
+                  style={{
+                    border: 'none',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    padding: 0,
+                    lineHeight: 1,
+                    fontSize: 14,
+                  }}
+                >
+                  ×
+                </button>
+              </span>
+            )}
+
+            {/* Scenario chips */}
+            {selectedScenarioArr.map((s) => (
+              <span
+                key={`chip-s-${s}`}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  fontSize: 12,
+                  padding: '6px 10px',
+                  borderRadius: 999,
+                  border: '1px solid #e6e6e6',
+                  background: '#fff',
+                }}
+              >
+                <span style={{ fontWeight: 700 }}>Scenario</span>
+                <span>{s}</span>
+                <button
+                  onClick={() => removeScenario(s)}
+                  aria-label={`Remove scenario ${s}`}
+                  style={{
+                    border: 'none',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    padding: 0,
+                    lineHeight: 1,
+                    fontSize: 14,
+                  }}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+
+            {/* Technology chips */}
+            {selectedTechnologyArr.map((t) => (
+              <span
+                key={`chip-t-${t}`}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  fontSize: 12,
+                  padding: '6px 10px',
+                  borderRadius: 999,
+                  border: '1px solid #e6e6e6',
+                  background: '#fff',
+                }}
+              >
+                <span style={{ fontWeight: 700 }}>Tech</span>
+                <span>{t}</span>
+                <button
+                  onClick={() => removeTechnology(t)}
+                  aria-label={`Remove technology ${t}`}
+                  style={{
+                    border: 'none',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    padding: 0,
+                    lineHeight: 1,
+                    fontSize: 14,
+                  }}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+
+            {/* Clear all */}
+            <button
+              onClick={clearAllFilters}
+              style={{
+                marginLeft: 4,
+                padding: '7px 10px',
+                borderRadius: 10,
+                border: '1px solid #ddd',
+                background: '#fff',
+                cursor: 'pointer',
+                fontWeight: 600,
+                fontSize: 12,
+              }}
+            >
+              Clear all
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Layout: Filters (Left) + Results (Right) */}
