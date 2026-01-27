@@ -2,38 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-
-type CategoryItem = {
-  id: number
-  name: string
-  slug: string | null
-  sortOrder: number
-}
-
-type CategoriesResponse = Record<string, CategoryItem[]>
-
-type CaseItem = {
-  id: number
-  title: string
-  summary: string
-  detail?: string | null
-  year?: number | null
-  link?: string | null
-  created_at?: string
-  updated_at?: string
-  tags?: {
-    scenario: string[]
-    technology: string[]
-  }
-}
-
-type CasesResponse = {
-  page: number
-  pageSize: number
-  total: number
-  totalPages: number
-  items: CaseItem[]
-}
+import type { CategoriesResponse, CasesResponse } from '@/types/tbi.types'
 
 const PAGE_SIZE = 12
 
