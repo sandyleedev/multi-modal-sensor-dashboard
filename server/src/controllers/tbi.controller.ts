@@ -276,7 +276,7 @@ export async function getTbiCases(req: Request, res: Response) {
     // - OFFSET uses $(idx + 1)
     const dataQuery = `
       SELECT
-        c.id, c.title, c.summary, c.detail, c.year, c.link, c.created_at, c.updated_at
+        c.id, c.title, c.summary, c.year, c.link, c.created_at, c.updated_at
       FROM tbi_cases c
       ${whereClause}
       ORDER BY c.year DESC NULLS LAST, c.id DESC
@@ -356,5 +356,63 @@ export async function getTbiCases(req: Request, res: Response) {
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: 'Server error' })
+  }
+}
+
+/**
+ * GET /api/tbi/cases/:id
+ * - return single case detail + tags(scenario/technology)
+ */
+export async function getTbiCaseById(req: Request, res: Response) {
+  try {
+    const id = Number(req.params.id)
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ error: 'Invalid case id' })
+    }
+
+    // 1) case detail
+    const caseResult = await pool.query(
+      `
+      SELECT
+        id, title, summary, detail, year, link, created_at, updated_at
+      FROM tbi_cases
+      WHERE id = $1
+      `,
+      [id],
+    )
+
+    const caseRow = caseResult.rows[0]
+    if (!caseRow) {
+      return res.status(404).json({ error: 'Case not found' })
+    }
+
+    // 2) tags
+    const tagResult = await pool.query(
+      `
+      SELECT
+        cat.type,
+        cat.name
+      FROM tbi_case_categories cc
+      JOIN tbi_categories cat ON cat.id = cc.category_id
+      WHERE cc.case_id = $1
+      ORDER BY cat.type ASC, cat.sort_order ASC, cat.name ASC
+      `,
+      [id],
+    )
+
+    const tags = { scenario: [] as string[], technology: [] as string[] }
+    for (const row of tagResult.rows) {
+      if (row.type === 'scenario') tags.scenario.push(row.name)
+      if (row.type === 'technology') tags.technology.push(row.name)
+    }
+
+    return res.json({
+      ...caseRow,
+      tags,
+    })
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ error: 'Server error' })
   }
 }
