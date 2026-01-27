@@ -23,7 +23,7 @@ export function CaseDetailModal({ open, loading, error, caseItem, onClose }: Pro
 
   if (!open) return null
 
-  const title = caseItem?.title ?? 'Loading...'
+  const title = caseItem?.title ?? ''
   const year = caseItem?.year ?? '—'
   const summary = caseItem?.summary ?? ''
   const detail = caseItem?.detail ?? null

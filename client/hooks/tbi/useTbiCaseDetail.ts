@@ -27,7 +27,17 @@ export function useTbiCaseDetail({ apiBase, caseId, initialCase }: Args) {
 
       try {
         const res = await fetch(`${apiBase}/tbi/cases/${id}`, { cache: 'no-store' })
-        if (!res.ok) throw new Error(`Failed to fetch case (${res.status})`)
+        if (res.status === 404) {
+          if (!cancelled) {
+            setData(null)
+            setError('Case not found.')
+          }
+          return
+        }
+
+        if (!res.ok) {
+          throw new Error(`Failed to fetch case (${res.status})`)
+        }
         const json = (await res.json()) as CaseItem
         if (!cancelled) setData(json)
       } catch (e) {
