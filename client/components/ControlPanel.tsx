@@ -138,7 +138,7 @@ export default function ControlPanel({
               min={startTime}
               max={dbRange.max}
               onChange={(e) => handleTimeChange('end', e.target.value)}
-              className="w-full cursor-pointer rounded-md border p-2 pr-4 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full cursor-pointer rounded-md border p-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
             />
             {isTimeInvalid && (
               <p className="mt-1 text-[12px] font-bold text-red-500">
