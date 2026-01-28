@@ -116,7 +116,7 @@ export async function getTbiCases(req: Request, res: Response) {
 
     // pageSize: limit to the range 1~50
     // max 50 is used to avoid heavy queries / server overload
-    const pageSize = Math.min(Math.max(parseInt((req.query.pageSize as string) || '12', 10), 1), 50)
+    const pageSize = Math.min(Math.max(parseInt((req.query.pageSize as string) || '5', 10), 1), 50)
 
     /**
      * Express parse query as a string or string[].
